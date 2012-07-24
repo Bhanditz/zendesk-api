@@ -3,11 +3,15 @@ module Zendesk
     attr_accessor :main_url, :format
     attr_reader :response_raw, :response
 
-    def initialize(account, username, password, options = {})
-      @account = account
-      @username = username
-      @password = password
+    def initialize(account, username, password_or_token, options = {})
       @options = options
+      if @options[:token]
+        @token = password_or_token
+      else
+        @password = password_or_token
+      end
+      @account = account
+      @username = username      
       if options[:format] && ['xml', 'json'].any?{|f| f == options[:format]}
         @format = options[:format]
       else
@@ -56,7 +60,11 @@ module Zendesk
       options.reverse_merge!({:on_behalf_of => nil})
       
       curl = Curl::Easy.new(main_url + end_url + ".#{@format}")
-      curl.userpwd = "#{@username}:#{@password}"
+      curl.userpwd = if @token
+        curl.userpwd = "#{@username}/token:#{@token}"
+      else
+        curl.userpwd = "#{@username}:#{@password}"
+      end
       
       curl.headers={}
       curl.headers.merge!({"X-On-Behalf-Of" => options[:on_behalf_of]}) if options[:on_behalf_of].present?
