@@ -55,16 +55,20 @@ module Zendesk
         body.values.first
       end
     end
+    
+    def credentials
+      if @token
+        "#{@username}/token:#{@token}"
+      else
+        "#{@username}:#{@password}"
+      end
+    end
 
     def make_request(end_url, body = {}, options = {})
       options.reverse_merge!({:on_behalf_of => nil})
       
       curl = Curl::Easy.new(main_url + end_url + ".#{@format}")
-      curl.userpwd = if @token
-        curl.userpwd = "#{@username}/token:#{@token}"
-      else
-        curl.userpwd = "#{@username}:#{@password}"
-      end
+      curl.userpwd = self.credentials
       
       curl.headers={}
       curl.headers.merge!({"X-On-Behalf-Of" => options[:on_behalf_of]}) if options[:on_behalf_of].present?
@@ -88,9 +92,6 @@ module Zendesk
         curl.http_delete
       end
 
-      if curl.body_str == "<error>Couldn't authenticate you</error>"
-        return "string" #raise CouldNotAuthenticateYou 
-      end
       Response.new(curl, format)
     end
 
