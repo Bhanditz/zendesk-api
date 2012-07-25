@@ -91,8 +91,37 @@ module Zendesk
       elsif body[:destroy]
         curl.http_delete
       end
-
-      Response.new(curl, format)
+      
+      handle_error Response.new(curl, format)
+    end
+    
+    def handle_error(resp)
+      error_message = resp.body if resp.headers.try(:[], "Content-Type") == "text/plain"
+      error_message = resp.data.try(:[], 'error').to_s
+      error = case resp.status
+      when 302 # doesn't look like there's a successful case that returns 302, usually mangled request path
+        RequestError.new("redirected")
+      when 401
+        AuthenticationError
+      when 404
+        error_message == 'RecordNotFound' ? RecordNotFoundError : NotFoundError
+      when 400..499
+        RequestError
+      when 500..599
+        ServiceError
+      else
+        nil
+      end
+      
+      # raise error or return response
+      if error
+        error = error.new(error_message) if error.is_a?(Class)
+        error.response = resp
+        raise error
+        nil
+      else
+        resp
+      end
     end
 
     class Response

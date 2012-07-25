@@ -9,7 +9,14 @@ require 'active_support/core_ext' if ActiveSupport::VERSION::MAJOR == 3
 
 module Zendesk
   class Error < StandardError; end
-  class CouldNotAuthenticateYou < StandardError; end
+  class RequestError < Error 
+    attr_accessor :response
+  end
+  class AuthenticationError < RequestError ; end # status 401, Couldn't authenticate you
+  class ServiceError < RequestError ; end # status 500
+  class RecordNotFoundError < RequestError ; end # RecordNotFound
+  class NotFoundError < RequestError; end # status 404 general
+  class FormatError < RequestError ; end # This is a JSON only API. Please specify the correct Accept header.
 end
 
 require 'zendesk/user'
