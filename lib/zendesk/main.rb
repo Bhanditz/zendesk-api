@@ -108,17 +108,23 @@ module Zendesk
         @headers_raw = curl.header_str
         parse_headers
         # parse the data coming back
-        @data = Crack::XML.parse(@body || "") if @format == "xml"
+        begin
+          @data = case @format
+          when 'xml'
+            Crack::XML.parse(@body || "")
+          when 'json'
+            JSON.parse(@body || "")
+          end
+        rescue
+        end 
       end
 
       def parse_headers
         hs={}
         return hs if headers_raw.nil? or headers_raw==""
         headers_raw.split("\r\n")[1..-1].each do |h|
-#          Rails.logger.info h
           m=h.match(/([^:]+):\s?(.*)/)
           next if m.nil? or m[2].nil?
-#          Rails.logger.info m.inspect
           hs[m[1]]=m[2]
         end
         @headers=hs
