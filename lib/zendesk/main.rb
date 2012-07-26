@@ -97,7 +97,7 @@ module Zendesk
     
     def handle_error(resp)
       error_message = resp.body if resp.headers.try(:[], "Content-Type") == "text/plain"
-      error_message = resp.data.try(:[], 'error').to_s
+      error_message ||= resp.data.is_a?(Hash) && resp.data.try(:[], 'error').to_s
       error = case resp.status
       when 302 # doesn't look like there's a successful case that returns 302, usually mangled request path
         RequestError.new("redirected")
