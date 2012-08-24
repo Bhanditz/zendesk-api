@@ -27,14 +27,17 @@ module Zendesk
       url = url_prefix + @account + url_postfix
     end
 
-    def self.to_xml(function_name, input)
+
+    def to_format(function_name, input)
       if input.is_a?(String)
         input
       else
-        input.to_xml({:root => function_name})
+        case @format
+        when 'xml' then input.to_xml({:root => function_name})
+        when 'json' then {function_name => input}.to_json
+        end
       end
     end
-
 
     def params_list(list)
       params = "?" + list.map do |k, v|
@@ -50,7 +53,10 @@ module Zendesk
     
     def string_body(body)
       if body.values.first.is_a?(Hash)
-        body.values.first.to_xml.strip
+        case @format
+        when 'xml' then body.values.first.to_xml.strip
+        when 'json' then body.values.first.to_json.strip
+        end
       elsif body.values.first.is_a?(String)
         body.values.first
       end
@@ -73,20 +79,22 @@ module Zendesk
       curl.headers={}
       curl.headers.merge!({"X-On-Behalf-Of" => options[:on_behalf_of]}) if options[:on_behalf_of].present?
       
+      curl.headers.merge! "Content-Type" => "application/#{@format}"
+      
       if body.empty? or body[:list]
         curl.url = curl.url + params_list(body[:list]) if body[:list]
         curl.perform
       elsif body[:post]
-        curl.headers.merge!({"Content-Type" => "application/xml"})
+        # curl.headers.merge!({"Content-Type" => "application/xml"})
         curl.http_post 
       elsif body[:create]
-        curl.headers.merge!({"Content-Type" => "application/xml"})
+        # curl.headers.merge!({"Content-Type" => "application/xml"})
         curl.http_post(string_body(body))
       elsif body[:update]
         # PUT seems badly broken, at least I can't get it to work without always
         # raising an exception about rewinding the data stream
-        # curl.http_put(final_body)
-        curl.headers.merge!({ "Content-Type" => "application/xml", "X-Http-Method-Override" => "put" })  
+        # curl.http_put(string_body(body))
+        curl.headers.merge! "X-Http-Method-Override" => "put"
         curl.http_post(string_body(body))
       elsif body[:destroy]
         curl.http_delete

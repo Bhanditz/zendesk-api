@@ -10,11 +10,11 @@ module Zendesk
     end
 
     def create_organization(input)
-      make_request("organizations", :create => Zendesk::Main.to_xml('organization', input))
+      make_request("organizations", :create => self.to_format('organization', input))
     end
 
     def update_organization(input)
-      make_request("organizations", :update => Zendesk::Main.to_xml('organization', input))
+      make_request("organizations", :update => self.to_format('organization', input))
     end
 
     def delete_organization(id)

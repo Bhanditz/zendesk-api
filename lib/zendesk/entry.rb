@@ -10,11 +10,11 @@ module Zendesk
     end
 
     def create_entrie(input)
-      make_request("entries", :create => Zendesk::Main.to_xml('entrie', input))
+      make_request("entries", :create => self.to_format('entrie', input))
     end
 
     def update_entrie(input)
-      make_request("entries", :update => Zendesk::Main.to_xml('entrie', input))
+      make_request("entries", :update => self.to_format('entrie', input))
     end
 
     def delete_entrie(id)

@@ -10,11 +10,11 @@ module Zendesk
     end
 
     def create_forum(input)
-      make_request("forums", :create => Zendesk::Main.to_xml('forum', input))
+      make_request("forums", :create => self.to_format('forum', input))
     end
 
     def update_forum(input)
-      make_request("forums", :update => Zendesk::Main.to_xml('forum', input))
+      make_request("forums", :update => self.to_format('forum', input))
     end
 
     def delete_forum(id)

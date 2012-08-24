@@ -14,11 +14,11 @@ module Zendesk
     end
 
     def create_user(input)
-      make_request("users", :create => Zendesk::Main.to_xml('user', input))
+      make_request("users", :create => self.to_format('user', input))
     end
 
     def update_user(id, input)
-      make_request("users/#{id}", :update => Zendesk::Main.to_xml('user', input))
+      make_request("users/#{id}", :update => self.to_format('user', input))
     end
 
     def delete_user(id)

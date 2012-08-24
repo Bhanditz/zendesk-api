@@ -10,11 +10,11 @@ module Zendesk
     end
 
     def create_group(input)
-      make_request("groups", :create => Zendesk::Main.to_xml('group', input))
+      make_request("groups", :create => self.to_format('group', input))
     end
 
     def update_group(input)
-      make_request("groups", :update => Zendesk::Main.to_xml('group', input))
+      make_request("groups", :update => self.to_format('group', input))
     end
 
     def delete_group(id)
